@@ -371,6 +371,7 @@ export class Game {
         const frameDist = logicalPos.distanceTo(prevPos);
         // Update player visuals and get whether we are swimming this frame
         const isSwimming = this.graphics.updatePlayerPosition(logicalPos);
+        const isMoving = frameDist > 0;
         
         if (frameDist > 0) {
             if (isSwimming) {
@@ -383,25 +384,25 @@ export class Game {
         this.lastLogicalPos.copy(logicalPos);
 
         // --- SFX: footsteps and water ---
-        if (frameDist > 0) {
-            if (isSwimming) {
-                // Start / keep swim loop
-                this.soundManager.setSwimming(true);
+        if (isSwimming) {
+            // Maintain swim/idle water ambience with appropriate volume
+            this.soundManager.setSwimming(true, isMoving);
 
-                // Play a splash when first entering water
-                if (!this.wasSwimming) {
-                    this.soundManager.playSplash();
-                }
-            } else {
-                // We are on terrain (not swimming)
-                this.soundManager.setSwimming(false);
+            // Play a splash when first entering water
+            if (!this.wasSwimming && isMoving) {
+                this.soundManager.playSplash();
+            }
+        } else {
+            // We are on terrain (not swimming)
+            this.soundManager.setSwimming(false, false);
 
-                // If we just exited water, small splash on exit
-                if (this.wasSwimming) {
-                    this.soundManager.playSplash();
-                }
+            // If we just exited water, small splash on exit (only if we were moving)
+            if (this.wasSwimming && isMoving) {
+                this.soundManager.playSplash();
+            }
 
-                // Accumulate distance for footsteps
+            if (isMoving) {
+                // Accumulate distance for footsteps only when moving
                 this.stepDistanceAccum += frameDist;
                 const STRIDE = 1.1; // Reduced stride for faster step cadence
 

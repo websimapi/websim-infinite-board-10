@@ -11,6 +11,7 @@ export class SoundManager {
 
         this.swimSource = null;
         this.swimGain = null;
+        this._swimTargetGain = 0; // track current target gain for smooth changes
     }
 
     async loadSound(key, url) {
@@ -87,10 +88,13 @@ export class SoundManager {
         source.start(0);
     }
 
-    setSwimming(isSwimming) {
+    // isSwimming: in water or not
+    // isMoving:   currently moving or idle while in water
+    setSwimming(isSwimming, isMoving = false) {
         this.resume();
         
         if (isSwimming) {
+            // Ensure loop source exists
             if (!this.swimSource) {
                 const buffer = this.buffers.get('swimLoop');
                 if (buffer) {
@@ -100,13 +104,25 @@ export class SoundManager {
                     
                     this.swimGain = this.ctx.createGain();
                     this.swimGain.gain.value = 0.0;
+                    this._swimTargetGain = 0.0;
                     
                     this.swimSource.connect(this.swimGain);
                     this.swimGain.connect(this.ctx.destination);
                     
                     const now = this.ctx.currentTime;
                     this.swimSource.start(0);
-                    this.swimGain.gain.linearRampToValueAtTime(0.3, now + 0.5);
+                }
+            }
+
+            if (this.swimGain) {
+                const now = this.ctx.currentTime;
+                const target = isMoving ? 0.3 : 0.15; // moving louder, idle half volume
+                // Only schedule when target changes to avoid piling ramps
+                if (target !== this._swimTargetGain) {
+                    this._swimTargetGain = target;
+                    this.swimGain.gain.cancelScheduledValues(now);
+                    this.swimGain.gain.setValueAtTime(this.swimGain.gain.value, now);
+                    this.swimGain.gain.linearRampToValueAtTime(target, now + 0.4);
                 }
             }
         } else {
@@ -120,6 +136,7 @@ export class SoundManager {
                 this.swimSource.stop(now + 0.3);
                 this.swimSource = null;
                 this.swimGain = null;
+                this._swimTargetGain = 0;
             }
         }
     }
