@@ -24,17 +24,19 @@ export class SoundManager {
         return a;
     }
 
-    _playOneShot(baseAudio) {
+    _playOneShot(baseAudio, playbackRate = 1.0) {
         if (!baseAudio) return;
         try {
             // Clone so overlapping steps don't cut each other off
             const a = baseAudio.cloneNode(true);
+            a.playbackRate = playbackRate;
             a.play().catch(() => {});
         } catch (_) {}
     }
 
     playStepGrass() {
-        this._playOneShot(this.stepGrass);
+        // Play grass steps slightly faster to feel quicker on repeat
+        this._playOneShot(this.stepGrass, 1.18);
     }
 
     playStepSand() {
