@@ -403,7 +403,7 @@ export class Game {
 
                 // Accumulate distance for footsteps
                 this.stepDistanceAccum += frameDist;
-                const STRIDE = 1.6; // meters per "step" sound
+                const STRIDE = 1.1; // Reduced stride for faster step cadence
 
                 while (this.stepDistanceAccum >= STRIDE) {
                     this.stepDistanceAccum -= STRIDE;
