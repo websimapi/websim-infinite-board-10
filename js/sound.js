@@ -39,10 +39,10 @@ export class SoundManager {
         source.buffer = buffer;
         
         // Play faster and cut duration in half as requested
-        source.playbackRate.value = 1.2; 
+        source.playbackRate.value = 2.0; 
         
         const gain = this.ctx.createGain();
-        gain.gain.value = 0.4;
+        gain.gain.value = 0.2;
 
         source.connect(gain);
         gain.connect(this.ctx.destination);
@@ -54,7 +54,7 @@ export class SoundManager {
         source.start(0);
         
         // Quick fade out at the cut point to prevent clicking
-        gain.gain.setValueAtTime(0.4, this.ctx.currentTime + playDuration - 0.05);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + playDuration - 0.05);
         gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + playDuration);
         
         source.stop(this.ctx.currentTime + playDuration);
