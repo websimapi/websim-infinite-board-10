@@ -38,23 +38,24 @@ export class SoundManager {
         const source = this.ctx.createBufferSource();
         source.buffer = buffer;
         
-        // Play faster and cut duration in half as requested
-        source.playbackRate.value = 2.0; 
+        // Play even faster (4x overall) so steps feel snappier
+        source.playbackRate.value = 4.0; 
         
         const gain = this.ctx.createGain();
-        gain.gain.value = 0.2;
+        // Half of the previous 0.2 volume
+        gain.gain.value = 0.1;
 
         source.connect(gain);
         gain.connect(this.ctx.destination);
 
-        // Play only the first 50% of the sample
+        // Play only the first 50% of the sample (time scaled by playbackRate)
         const contentDuration = buffer.duration * 0.5; 
         const playDuration = contentDuration / source.playbackRate.value;
 
         source.start(0);
         
         // Quick fade out at the cut point to prevent clicking
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + playDuration - 0.05);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime + playDuration - 0.05);
         gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + playDuration);
         
         source.stop(this.ctx.currentTime + playDuration);
